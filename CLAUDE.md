@@ -1,0 +1,1 @@
+- Always run `pnpm lint:tsc` after code changes where the types might be incorrect after your changes.

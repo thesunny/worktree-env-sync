@@ -18,12 +18,15 @@
     "-- build": "# build",
     "build": "tsup",
     "build:watch": "tsup --watch",
+    "-- lint": "# lint",
+    "lint:tsc": "tsc --noEmit",
     "-- test": "# test",
     "test": "vitest",
     "test:watch": "vitest ",
     "-- end": "# end"
   },
   "dependencies": {
+    "@dotenvx/dotenvx": "^1.51.1",
     "zod": "^4.1.13"
   }
 }
