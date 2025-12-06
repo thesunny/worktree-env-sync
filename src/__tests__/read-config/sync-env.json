@@ -3,8 +3,7 @@
   "outputPath": "env.local",
   "targetFolders": {
     ".env.worktree1": "temp/worktree1",
-    ".env.worktree2": "temp/worktree2",
-    ".env.worktree3": "temp/worktree3"
+    ".env.worktree2": "temp/worktree2"
   },
   "softLinks": ["apps/web", "apps/docs", "packages/db"]
 }
