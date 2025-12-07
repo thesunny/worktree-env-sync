@@ -1,7 +1,7 @@
 import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import dotenvx from "@dotenvx/dotenvx";
-import { readConfig, readContext } from "./readContext.js";
+import { readContext } from "./readContext.js";
 import { type Config, type Context, type GeneratedFile } from "./types.js";
 import { serializeEnv } from "./utils.js";
 import { validateEnvInputs } from "./validateEnvInputs.js";
