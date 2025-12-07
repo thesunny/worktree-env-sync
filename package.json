@@ -1,10 +1,10 @@
 {
-  "name": "worktree-cli",
+  "name": "worktree-env-sync",
   "type": "module",
   "version": "1.0.1",
   "description": "",
   "bin": {
-    "worktree": "./dist/cli.js"
+    "worktree-env-sync": "./dist/cli.js"
   },
   "files": [
     "dist"
