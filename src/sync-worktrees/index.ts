@@ -13,7 +13,10 @@ export type { Config, Context, GeneratedFile } from "./types.js";
  */
 function serializeEnv(env: Record<string, string>): string {
   return Object.entries(env)
-    .map(([key, value]) => `${key}="${value}"`)
+    .map(([key, value]) => {
+      const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      return `${key}="${escaped}"`;
+    })
     .join("\n");
 }
 
@@ -115,7 +118,7 @@ export function generateEnvFiles(
     if (!content) {
       throw new Error(`Input file not found: ${sourceFile}`);
     }
-    inputFiles.set(sourceFile, dotenvx.parse(content));
+    inputFiles.set(sourceFile, dotenvx.parse(content, { processEnv: {} }));
   }
 
   // Validate input files have consistent keys

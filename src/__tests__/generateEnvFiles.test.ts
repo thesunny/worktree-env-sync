@@ -103,4 +103,44 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
       "missing variable"
     );
   });
+
+  it("should not expand system environment variables in input files", () => {
+    const singleConfig: Config = {
+      ...config,
+      targetFolders: { ".env.worktree1": "temp/worktree1" },
+    };
+    const fileMap = new Map([
+      [".env.template", "APP=simple"],
+      [".env.worktree1", `PATH=/custom/path
+HOME=/custom/home`],
+    ]);
+
+    const result = generateEnvFiles(singleConfig, fileMap);
+
+    // Should contain the literal values, not system env vars
+    expect(result[0]?.content).toContain(`PATH="/custom/path"`);
+    expect(result[0]?.content).toContain(`HOME="/custom/home"`);
+    // Should NOT contain actual system paths
+    expect(result[0]?.content).not.toContain("/usr/bin");
+    expect(result[0]?.content).not.toContain("/Users/");
+  });
+
+  it("should escape quotes and backslashes in values", () => {
+    const singleConfig: Config = {
+      ...config,
+      targetFolders: { ".env.worktree1": "temp/worktree1" },
+    };
+    const fileMap = new Map([
+      [".env.template", "APP=simple"],
+      [".env.worktree1", `MESSAGE=hello "world"
+WIN_PATH=C:\\Users\\test
+MIXED=say \\"hi\\"`],
+    ]);
+
+    const result = generateEnvFiles(singleConfig, fileMap);
+
+    expect(result[0]?.content).toContain(`MESSAGE="hello \\"world\\""`);
+    expect(result[0]?.content).toContain(`WIN_PATH="C:\\\\Users\\\\test"`);
+    expect(result[0]?.content).toContain(`MIXED="say \\\\\\"hi\\\\\\""`);
+  });
 });
