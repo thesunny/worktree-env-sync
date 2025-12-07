@@ -11,11 +11,11 @@ npm install -g worktree-cli
 ## Usage
 
 ```bash
-# Using default config file (sync-env.json)
-sync-worktree
+# Using default config file (worktree-env-sync.json)
+worktree-env-sync
 
 # Using a custom config file
-sync-worktree my-config.json
+worktree-env-sync my-config.json
 ```
 
 ## Config File
@@ -25,12 +25,12 @@ The config file is a JSON file with the following structure:
 ```json
 {
   "template": ".env.template",
-  "outputPath": ".env.local",
-  "targetFolders": {
+  "inputFilesToFolders": {
     ".env.worktree1": "worktrees/feature-a",
     ".env.worktree2": "worktrees/feature-b"
   },
-  "symlinks": [
+  "outputFile": ".env.local",
+  "symlinksToOuputFile": [
     "apps/web/.env.local",
     "apps/api/.env.local",
     "packages/db/.env.local"
@@ -41,9 +41,9 @@ The config file is a JSON file with the following structure:
 | Field | Description |
 |-------|-------------|
 | `template` | Path to the template env file containing shared variables and interpolation references |
-| `outputPath` | Output filename for the generated env file (relative to each target folder) |
-| `targetFolders` | Map of input env files to their target worktree folders |
-| `symlinks` | Paths where symlinks to the generated env file should be created (relative to each target folder) |
+| `inputFilesToFolders` | Map of input env files to their target worktree folders |
+| `outputFile` | Output filename for the generated env file (relative to each target folder) |
+| `symlinksToOuputFile` | Paths where symlinks to the generated env file should be created (relative to each target folder) |
 
 ## How It Works
 
@@ -72,22 +72,19 @@ Create a template file with shared variables. Use `${VAR_NAME}` syntax to refere
 APP_NAME=myapp
 APP_URL=http://localhost:3000
 DATABASE_CONNECTION=${DATABASE_URL}?pool=5
+API_KEY=${API_KEY}
 ```
 
 ### 3. Generated Output
 
-Running `sync-worktree` generates an env file in each target folder combining both sections:
+Running `worktree-env-sync` generates an env file in each target folder with interpolated values:
 
 ```bash
 # worktrees/feature-a/.env.local
-# Input variables
-DATABASE_URL="postgres://localhost/feature_a_db"
-API_KEY="dev-key-123"
-
-# Template variables
 APP_NAME="myapp"
 APP_URL="http://localhost:3000"
 DATABASE_CONNECTION="postgres://localhost/feature_a_db?pool=5"
+API_KEY="dev-key-123"
 ```
 
 ### 4. Symlinks

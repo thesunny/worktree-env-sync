@@ -20,7 +20,7 @@ describe("syncWorktrees", () => {
 
     // Create config file
     writeFileSync(
-      join(TEST_DIR, "sync-env.json"),
+      join(TEST_DIR, "worktree-env-sync.json"),
       JSON.stringify({
         template: ".env.template",
         inputFilesToFolders: {
@@ -64,7 +64,7 @@ API_KEY=key2`
   });
 
   it("should generate env files and create symlinks for all worktrees", () => {
-    syncWorktrees(TEST_DIR, "sync-env.json");
+    syncWorktrees(TEST_DIR, "worktree-env-sync.json");
 
     // Check env files were created
     const envFile1 = join(TEST_DIR, "worktrees/wt1/.env.local");

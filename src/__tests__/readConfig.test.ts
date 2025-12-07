@@ -6,7 +6,7 @@ const BASE_PATH = join(__dirname, "readConfig");
 
 describe("readConfig", () => {
   it("should read and validate sync-env.json", () => {
-    const config = readConfig(BASE_PATH, "sync-env.json");
+    const config = readConfig(BASE_PATH, "worktree-env-sync.json");
 
     expect(config).toEqual({
       template: ".env.template",

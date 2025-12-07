@@ -26,5 +26,7 @@
     /* If your code doesn't run in the DOM: */
     "lib": ["es2022"],
     "types": ["@types/node"] // pnpm add -D @types/node
-  }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
