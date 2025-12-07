@@ -29,11 +29,13 @@ function processTemplate(
     usedVars.add(varName);
   }
 
-  // Check for unused input variables
+  // Warn about unused input variables
   const inputKeys = Object.keys(inputVars);
   const unusedVars = inputKeys.filter((key) => !usedVars.has(key));
   if (unusedVars.length > 0) {
-    throw new Error(`Input variables not used in template: ${unusedVars.join(", ")}`);
+    console.warn(
+      `\n⚠️  WARNING: Input variables not used in template: ${unusedVars.join(", ")}\n`
+    );
   }
 
   return dotenvx.parse(templateContent, { processEnv: inputVars });

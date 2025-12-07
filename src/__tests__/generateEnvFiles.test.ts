@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   type Config,
   generateEnvFiles,
@@ -98,7 +98,7 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
     expect(result[0]?.content).toBe('PORT="3000"');
   });
 
-  it("should throw error when input variable is not used in template", () => {
+  it("should warn when input variable is not used in template", () => {
     const singleConfig: Config = {
       ...config,
       inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
@@ -108,9 +108,14 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
       [".env.worktree1", "UNUSED_VAR=value"],
     ]);
 
-    expect(() => generateEnvFiles(singleConfig, fileMap)).toThrow(
-      "not used in template"
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const result = generateEnvFiles(singleConfig, fileMap);
+
+    expect(result).toHaveLength(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("UNUSED_VAR")
     );
+    warnSpy.mockRestore();
   });
 
   it("should throw error when template references missing variable", () => {

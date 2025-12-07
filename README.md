@@ -75,6 +75,8 @@ DATABASE_CONNECTION=${DATABASE_URL}?pool=5
 API_KEY=${API_KEY}
 ```
 
+**Note:** All `${VAR}` references in the template must exist in the input files or the tool will fail, since missing variables would result in broken output. If input files contain variables not referenced in the template, a warning will be displayed but processing will continue, since the output is still valid.
+
 ### 3. Generated Output
 
 Running `worktree-env-sync` generates an env file in each target folder with interpolated values:
@@ -107,4 +109,5 @@ The tool validates that:
 
 - All input files have the same set of keys
 - Template and input files don't have conflicting keys
-- All `${VAR}` references in the template exist in the input files
+- All `${VAR}` references in the template exist in the input files (fails if missing)
+- Input variables not used in the template trigger a warning (but processing continues)
