@@ -1,21 +1,9 @@
 import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import dotenvx from "@dotenvx/dotenvx";
-import { z } from "zod";
+import { type Config, configSchema, type GeneratedFile } from "./types.js";
 
-const configSchema = z.object({
-  template: z.string(),
-  outputPath: z.string(),
-  targetFolders: z.record(z.string(), z.string()),
-  softLinks: z.array(z.string()),
-});
-
-export type Config = z.infer<typeof configSchema>;
-
-export interface GeneratedFile {
-  path: string;
-  content: string;
-}
+export type { Config, GeneratedFile } from "./types.js";
 
 /**
  * Reads and validates a sync-env config file.
