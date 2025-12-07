@@ -1,5 +1,5 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import dotenvx from "@dotenvx/dotenvx";
 import { z } from "zod";
 
@@ -17,6 +17,10 @@ export interface GeneratedFile {
   content: string;
 }
 
+/**
+ * Reads and validates a sync-env config file.
+ * Throws an error if the config file is missing or invalid.
+ */
 export function readConfig(base: string, configPath: string): Config {
   const fullPath = join(base, configPath);
   const content = readFileSync(fullPath, "utf-8");
@@ -30,12 +34,20 @@ export function readConfig(base: string, configPath: string): Config {
   return result.data;
 }
 
+/**
+ * Serializes an env object to a string with quoted values.
+ * Output format: KEY="value" on each line.
+ */
 function serializeEnv(env: Record<string, string>): string {
   return Object.entries(env)
     .map(([key, value]) => `${key}="${value}"`)
     .join("\n");
 }
 
+/**
+ * Validates that all input files have the same set of keys.
+ * Logs details and throws an error if any inconsistencies are found.
+ */
 function validateInputFilesConsistency(
   inputFiles: Map<string, Record<string, string>>
 ): void {
@@ -65,6 +77,10 @@ function validateInputFilesConsistency(
   }
 }
 
+/**
+ * Validates that template and input variables don't share any keys.
+ * Throws an error if any conflicts are found.
+ */
 function validateNoConflicts(
   templateVars: Record<string, string>,
   inputVars: Record<string, string>,
@@ -81,6 +97,10 @@ function validateNoConflicts(
   }
 }
 
+/**
+ * Processes the template by interpolating input variables using dotenvx.
+ * Throws an error if the template references any variables not in inputVars.
+ */
 function processTemplate(
   templateContent: string,
   inputVars: Record<string, string>
@@ -99,6 +119,11 @@ function processTemplate(
   return dotenvx.parse(templateContent, { processEnv: inputVars });
 }
 
+/**
+ * Pure function that generates env file contents from config and file contents.
+ * Takes a fileMap of relative paths to file contents and returns an array of
+ * generated files with their paths and content. Does not perform any file I/O.
+ */
 export function generateEnvFiles(
   config: Config,
   fileMap: Map<string, string>
@@ -152,6 +177,11 @@ export function generateEnvFiles(
   return results;
 }
 
+/**
+ * Pure function that generates a mapping of env file paths to their symlink paths.
+ * Returns a Map where each key is the path to a generated env file and the value
+ * is an array of paths where symlinks should be created pointing to that env file.
+ */
 export function generateEnvLinks(config: Config): Map<string, string[]> {
   const result = new Map<string, string[]>();
 
@@ -166,7 +196,11 @@ export function generateEnvLinks(config: Config): Map<string, string[]> {
   return result;
 }
 
-export function syncEnvFiles(base: string, config: Config): void {
+/**
+ * Reads files from disk, generates env files, writes them to disk, and creates symlinks.
+ * This is the main orchestration function that performs all file I/O operations.
+ */
+export function syncEnvFilesFromConfig(base: string, config: Config): void {
   // Build fileMap by reading files
   const fileMap = new Map<string, string>();
 
@@ -189,9 +223,24 @@ export function syncEnvFiles(base: string, config: Config): void {
     mkdirSync(dirname(fullPath), { recursive: true });
     writeFileSync(fullPath, content);
   }
+
+  // Create symlinks
+  const envLinks = generateEnvLinks(config);
+  for (const [envFilePath, linkPaths] of envLinks) {
+    const fullEnvPath = join(base, envFilePath);
+    for (const linkPath of linkPaths) {
+      const fullLinkPath = join(base, linkPath);
+      mkdirSync(dirname(fullLinkPath), { recursive: true });
+      const relativePath = relative(dirname(fullLinkPath), fullEnvPath);
+      symlinkSync(relativePath, fullLinkPath);
+    }
+  }
 }
 
+/**
+ * Main entry point. Reads the config file and syncs all env files and symlinks.
+ */
 export function syncWorktrees(base: string, configPath: string): void {
   const config = readConfig(base, configPath);
-  syncEnvFiles(base, config);
+  syncEnvFilesFromConfig(base, config);
 }
