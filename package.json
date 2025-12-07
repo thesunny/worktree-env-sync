@@ -3,7 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "bin": {
+    "sync-worktree": "./dist/cli.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
