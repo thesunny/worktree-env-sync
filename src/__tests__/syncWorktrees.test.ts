@@ -28,7 +28,7 @@ describe("syncWorktrees", () => {
           ".env.worktree1": "worktrees/wt1",
           ".env.worktree2": "worktrees/wt2",
         },
-        softLinks: [
+        symlinks: [
           "apps/web/.env.local",
           "apps/docs/.env.local",
           "packages/db/.env.local",

@@ -12,7 +12,7 @@ describe("generateEnvFiles", () => {
       ".env.worktree1": "temp/worktree1",
       ".env.worktree2": "temp/worktree2",
     },
-    softLinks: [],
+    symlinks: [],
   };
 
   it("should generate output with input and template sections", () => {

@@ -21,21 +21,21 @@ export function readConfig(base: string, configPath: string): Config {
 
 /**
  * Reads the config file and all supporting files (template and input env files).
- * Returns a Context object containing the base path, config, and fileMap.
+ * Returns a Context object containing the base path, config, and fileContentsMap.
  */
 export function readContext(base: string, configPath: string): Context {
   const config = readConfig(base, configPath);
-  const fileMap = new Map<string, string>();
+  const fileContentsMap = new Map<string, string>();
 
   // Read template file
   const templatePath = join(base, config.template);
-  fileMap.set(config.template, readFileSync(templatePath, "utf-8"));
+  fileContentsMap.set(config.template, readFileSync(templatePath, "utf-8"));
 
   // Read all input files
   for (const sourceFile of Object.keys(config.targetFolders)) {
     const sourcePath = join(base, sourceFile);
-    fileMap.set(sourceFile, readFileSync(sourcePath, "utf-8"));
+    fileContentsMap.set(sourceFile, readFileSync(sourcePath, "utf-8"));
   }
 
-  return { base, config, fileMap };
+  return { base, config, fileContentsMap };
 }

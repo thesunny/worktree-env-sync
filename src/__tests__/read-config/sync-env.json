@@ -5,7 +5,7 @@
     ".env.worktree1": "temp/worktree1",
     ".env.worktree2": "temp/worktree2"
   },
-  "softLinks": [
+  "symlinks": [
     "apps/web/.env.local",
     "apps/docs/.env.local",
     "packages/db/.env.local"

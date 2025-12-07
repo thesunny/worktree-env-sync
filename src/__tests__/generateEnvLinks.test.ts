@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { type Config, generateEnvLinks } from "../sync-worktrees/index.js";
 
 describe("generateEnvLinks", () => {
-  it("should generate softlink paths for each target folder", () => {
+  it("should generate symlink paths for each target folder", () => {
     const config: Config = {
       template: ".env.template",
       outputPath: ".env.local",
@@ -10,7 +10,7 @@ describe("generateEnvLinks", () => {
         ".env.worktree1": "temp/worktree1",
         ".env.worktree2": "temp/worktree2",
       },
-      softLinks: [
+      symlinks: [
         "apps/web/.env.local",
         "apps/docs/.env.local",
         "packages/db/.env.local",
@@ -32,14 +32,14 @@ describe("generateEnvLinks", () => {
     ]);
   });
 
-  it("should return empty arrays when no softLinks configured", () => {
+  it("should return empty arrays when no symlinks configured", () => {
     const config: Config = {
       template: ".env.template",
       outputPath: ".env.local",
       targetFolders: {
         ".env.worktree1": "temp/worktree1",
       },
-      softLinks: [],
+      symlinks: [],
     };
 
     const result = generateEnvLinks(config);
