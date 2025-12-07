@@ -152,6 +152,20 @@ export function generateEnvFiles(
   return results;
 }
 
+export function generateEnvLinks(config: Config): Map<string, string[]> {
+  const result = new Map<string, string[]>();
+
+  for (const targetFolder of Object.values(config.targetFolders)) {
+    const envFilePath = join(targetFolder, config.outputPath);
+    const linkPaths = config.softLinks.map((softLink) =>
+      join(targetFolder, softLink)
+    );
+    result.set(envFilePath, linkPaths);
+  }
+
+  return result;
+}
+
 export function syncEnvFiles(base: string, config: Config): void {
   // Build fileMap by reading files
   const fileMap = new Map<string, string>();

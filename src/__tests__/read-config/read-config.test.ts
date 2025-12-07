@@ -14,7 +14,7 @@ describe("readConfig", () => {
         ".env.worktree1": "temp/worktree1",
         ".env.worktree2": "temp/worktree2",
       },
-      softLinks: ["apps/web", "apps/docs", "packages/db"],
+      softLinks: ["apps/web/.env.local", "apps/docs/.env.local", "packages/db/.env.local"],
     });
   });
 
