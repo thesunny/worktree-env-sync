@@ -1,7 +1,8 @@
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readConfig } from "../../sync-worktrees/index.js";
+import { readConfig } from "../sync-worktrees/index.js";
 
-const BASE_PATH = __dirname;
+const BASE_PATH = join(__dirname, "readConfig");
 
 describe("readConfig", () => {
   it("should read and validate sync-env.json", () => {
