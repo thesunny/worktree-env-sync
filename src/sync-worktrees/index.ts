@@ -3,22 +3,10 @@ import { dirname, join, relative } from "node:path";
 import dotenvx from "@dotenvx/dotenvx";
 import { readConfig, readContext } from "./readContext.js";
 import { type Config, type Context, type GeneratedFile } from "./types.js";
+import { serializeEnv } from "./utils.js";
 
 export { readConfig, readContext } from "./readContext.js";
 export type { Config, Context, GeneratedFile } from "./types.js";
-
-/**
- * Serializes an env object to a string with quoted values.
- * Output format: KEY="value" on each line.
- */
-function serializeEnv(env: Record<string, string>): string {
-  return Object.entries(env)
-    .map(([key, value]) => {
-      const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      return `${key}="${escaped}"`;
-    })
-    .join("\n");
-}
 
 /**
  * Validates that all input files have the same set of keys.
@@ -68,8 +56,25 @@ function validateNoConflicts(
   const conflicts = inputKeys.filter((k) => templateKeys.has(k));
   if (conflicts.length > 0) {
     throw new Error(
-      `Template and input file "${inputFile}" have conflicting keys: ${conflicts.join(", ")}`
+      `Template and input file "${inputFile}" have conflicting keys: ${conflicts.join(
+        ", "
+      )}`
     );
+  }
+}
+
+/**
+ * Validates all input files and template variables.
+ * Ensures input files have consistent keys and don't conflict with template.
+ */
+function validateEnvInputs(
+  templateVars: Record<string, string>,
+  inputFiles: Map<string, Record<string, string>>
+): void {
+  validateInputFilesConsistency(inputFiles);
+
+  for (const [sourceFile, vars] of inputFiles) {
+    validateNoConflicts(templateVars, vars, sourceFile);
   }
 }
 
@@ -86,9 +91,7 @@ function processTemplate(
   for (const match of varRefs) {
     const varName = match[1]!;
     if (!(varName in inputVars)) {
-      throw new Error(
-        `Template references missing variable: ${varName}`
-      );
+      throw new Error(`Template references missing variable: ${varName}`);
     }
   }
 
@@ -121,17 +124,13 @@ export function generateEnvFiles(
     inputFiles.set(sourceFile, dotenvx.parse(content, { processEnv: {} }));
   }
 
-  // Validate input files have consistent keys
-  validateInputFilesConsistency(inputFiles);
-
-  // Validate no conflicts between template and input vars
-  for (const [sourceFile, vars] of inputFiles) {
-    validateNoConflicts(templateVars, vars, sourceFile);
-  }
+  validateEnvInputs(templateVars, inputFiles);
 
   // Generate output for each target folder
   const results: GeneratedFile[] = [];
-  for (const [sourceFile, targetFolder] of Object.entries(config.targetFolders)) {
+  for (const [sourceFile, targetFolder] of Object.entries(
+    config.targetFolders
+  )) {
     const inputVars = inputFiles.get(sourceFile)!;
     const destPath = join(targetFolder, config.outputPath);
 
@@ -173,24 +172,20 @@ export function generateEnvLinks(config: Config): Map<string, string[]> {
 }
 
 /**
- * Generates env files, writes them to disk, and creates symlinks using a pre-loaded context.
- * This is the main orchestration function that performs all write operations.
+ * Writes generated env files to disk.
  */
-export function syncEnvFilesFromContext(context: Context): void {
-  const { base, config, fileMap } = context;
-
-  // Generate files
-  const generatedFiles = generateEnvFiles(config, fileMap);
-
-  // Write files to disk
-  for (const { path, content } of generatedFiles) {
+function writeEnvFiles(base: string, envFiles: GeneratedFile[]): void {
+  for (const { path, content } of envFiles) {
     const fullPath = join(base, path);
     mkdirSync(dirname(fullPath), { recursive: true });
     writeFileSync(fullPath, content);
   }
+}
 
-  // Create symlinks
-  const envLinks = generateEnvLinks(config);
+/**
+ * Creates symlinks for env files.
+ */
+function writeSymlinks(base: string, envLinks: Map<string, string[]>): void {
   for (const [envFilePath, linkPaths] of envLinks) {
     const fullEnvPath = join(base, envFilePath);
     for (const linkPath of linkPaths) {
@@ -200,6 +195,20 @@ export function syncEnvFilesFromContext(context: Context): void {
       symlinkSync(relativePath, fullLinkPath);
     }
   }
+}
+
+/**
+ * Generates env files, writes them to disk, and creates symlinks using a pre-loaded context.
+ * This is the main orchestration function that performs all write operations.
+ */
+export function syncEnvFilesFromContext(context: Context): void {
+  const { base, config, fileMap } = context;
+
+  const envFiles = generateEnvFiles(config, fileMap);
+  const envLinks = generateEnvLinks(config);
+
+  writeEnvFiles(base, envFiles);
+  writeSymlinks(base, envLinks);
 }
 
 /**
