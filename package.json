@@ -10,12 +10,6 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.20.0",
-  "devDependencies": {
-    "@types/node": "^24.10.1",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.15"
-  },
   "scripts": {
     "-- build": "# build",
     "build": "tsup",
@@ -30,5 +24,11 @@
   "dependencies": {
     "@dotenvx/dotenvx": "^1.51.1",
     "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   }
 }
