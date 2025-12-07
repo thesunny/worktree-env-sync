@@ -12,6 +12,11 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
+export interface GeneratedFile {
+  path: string;
+  content: string;
+}
+
 export function readConfig(base: string, configPath: string): Config {
   const fullPath = join(base, configPath);
   const content = readFileSync(fullPath, "utf-8");
@@ -94,17 +99,24 @@ function processTemplate(
   return dotenvx.parse(templateContent, { processEnv: inputVars });
 }
 
-export function syncEnvFiles(base: string, config: Config): void {
-  // Read template
-  const templatePath = join(base, config.template);
-  const templateContent = readFileSync(templatePath, "utf-8");
+export function generateEnvFiles(
+  config: Config,
+  fileMap: Map<string, string>
+): GeneratedFile[] {
+  // Get template content
+  const templateContent = fileMap.get(config.template);
+  if (!templateContent) {
+    throw new Error(`Template file not found: ${config.template}`);
+  }
   const templateVars = dotenvx.parse(templateContent, { processEnv: {} });
 
-  // Read all input files
+  // Parse all input files
   const inputFiles = new Map<string, Record<string, string>>();
   for (const sourceFile of Object.keys(config.targetFolders)) {
-    const sourcePath = join(base, sourceFile);
-    const content = readFileSync(sourcePath, "utf-8");
+    const content = fileMap.get(sourceFile);
+    if (!content) {
+      throw new Error(`Input file not found: ${sourceFile}`);
+    }
     inputFiles.set(sourceFile, dotenvx.parse(content));
   }
 
@@ -116,16 +128,17 @@ export function syncEnvFiles(base: string, config: Config): void {
     validateNoConflicts(templateVars, vars, sourceFile);
   }
 
-  // Process each target folder
+  // Generate output for each target folder
+  const results: GeneratedFile[] = [];
   for (const [sourceFile, targetFolder] of Object.entries(config.targetFolders)) {
     const inputVars = inputFiles.get(sourceFile)!;
-    const destPath = join(base, targetFolder, config.outputPath);
+    const destPath = join(targetFolder, config.outputPath);
 
     // Process template with input vars
     const processedTemplate = processTemplate(templateContent, inputVars);
 
     // Build output with sections
-    const output = [
+    const content = [
       "# Input variables",
       serializeEnv(inputVars),
       "",
@@ -133,8 +146,34 @@ export function syncEnvFiles(base: string, config: Config): void {
       serializeEnv(processedTemplate),
     ].join("\n");
 
-    mkdirSync(dirname(destPath), { recursive: true });
-    writeFileSync(destPath, output);
+    results.push({ path: destPath, content });
+  }
+
+  return results;
+}
+
+export function syncEnvFiles(base: string, config: Config): void {
+  // Build fileMap by reading files
+  const fileMap = new Map<string, string>();
+
+  // Read template
+  const templatePath = join(base, config.template);
+  fileMap.set(config.template, readFileSync(templatePath, "utf-8"));
+
+  // Read all input files
+  for (const sourceFile of Object.keys(config.targetFolders)) {
+    const sourcePath = join(base, sourceFile);
+    fileMap.set(sourceFile, readFileSync(sourcePath, "utf-8"));
+  }
+
+  // Generate files
+  const generatedFiles = generateEnvFiles(config, fileMap);
+
+  // Write files to disk
+  for (const { path, content } of generatedFiles) {
+    const fullPath = join(base, path);
+    mkdirSync(dirname(fullPath), { recursive: true });
+    writeFileSync(fullPath, content);
   }
 }
 
