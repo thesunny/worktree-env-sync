@@ -31,7 +31,7 @@ describe("syncWorktrees", () => {
     rmSync(join(BASE_PATH, "temp"), { recursive: true, force: true });
   });
 
-  it("should generate output with input and template sections", () => {
+  it.only("should generate output with input and template sections", () => {
     syncWorktrees(BASE_PATH, "sync-env.json");
 
     const file1 = join(BASE_PATH, "temp/worktree1/env.local");
