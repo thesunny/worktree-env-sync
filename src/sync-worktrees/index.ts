@@ -1,10 +1,10 @@
-import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import dotenvx from "@dotenvx/dotenvx";
 import { readContext } from "./readContext.js";
 import { type Config, type Context, type GeneratedFile } from "./types.js";
 import { serializeEnv } from "./utils.js";
 import { validateEnvInputs } from "./validateEnvInputs.js";
+import { writeEnvFiles, writeSymlinks } from "./write-utils.js";
 
 export { readConfig, readContext } from "./readContext.js";
 export type { Config, Context, GeneratedFile } from "./types.js";
@@ -12,18 +12,28 @@ export type { Config, Context, GeneratedFile } from "./types.js";
 /**
  * Processes the template by interpolating input variables using dotenvx.
  * Throws an error if the template references any variables not in inputVars.
+ * Throws an error if any input variables are not used in the template.
  */
 function processTemplate(
   templateContent: string,
   inputVars: Record<string, string>
 ): Record<string, string> {
   // Find all variable references in template before processing
+  const usedVars = new Set<string>();
   const varRefs = templateContent.matchAll(/\$\{(\w+)\}/g);
   for (const match of varRefs) {
     const varName = match[1]!;
     if (!(varName in inputVars)) {
       throw new Error(`Template references missing variable: ${varName}`);
     }
+    usedVars.add(varName);
+  }
+
+  // Check for unused input variables
+  const inputKeys = Object.keys(inputVars);
+  const unusedVars = inputKeys.filter((key) => !usedVars.has(key));
+  if (unusedVars.length > 0) {
+    throw new Error(`Input variables not used in template: ${unusedVars.join(", ")}`);
   }
 
   return dotenvx.parse(templateContent, { processEnv: inputVars });
@@ -55,7 +65,7 @@ export function generateEnvFiles(
     inputFiles.set(sourceFile, dotenvx.parse(content, { processEnv: {} }));
   }
 
-  validateEnvInputs(templateVars, inputFiles);
+  validateEnvInputs(templateVars, inputFiles, templateContent);
 
   // Generate output for each target folder
   const results: GeneratedFile[] = [];
@@ -68,14 +78,8 @@ export function generateEnvFiles(
     // Process template with input vars
     const processedTemplate = processTemplate(templateContent, inputVars);
 
-    // Build output with sections
-    const content = [
-      "# Input variables",
-      serializeEnv(inputVars),
-      "",
-      "# Template variables",
-      serializeEnv(processedTemplate),
-    ].join("\n");
+    // Build output with processed template only
+    const content = serializeEnv(processedTemplate);
 
     results.push({ path: destPath, content });
   }
@@ -100,32 +104,6 @@ export function generateEnvLinks(config: Config): Map<string, string[]> {
   }
 
   return result;
-}
-
-/**
- * Writes generated env files to disk.
- */
-function writeEnvFiles(base: string, envFiles: GeneratedFile[]): void {
-  for (const { path, content } of envFiles) {
-    const fullPath = join(base, path);
-    mkdirSync(dirname(fullPath), { recursive: true });
-    writeFileSync(fullPath, content);
-  }
-}
-
-/**
- * Creates symlinks for env files.
- */
-function writeSymlinks(base: string, envLinks: Map<string, string[]>): void {
-  for (const [envFilePath, linkPaths] of envLinks) {
-    const fullEnvPath = join(base, envFilePath);
-    for (const linkPath of linkPaths) {
-      const fullLinkPath = join(base, linkPath);
-      mkdirSync(dirname(fullLinkPath), { recursive: true });
-      const relativePath = relative(dirname(fullLinkPath), fullEnvPath);
-      symlinkSync(relativePath, fullLinkPath);
-    }
-  }
 }
 
 /**

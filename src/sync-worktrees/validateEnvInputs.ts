@@ -1,69 +1,43 @@
 /**
- * Validates that all input files have the same set of keys.
- * Logs details and throws an error if any inconsistencies are found.
- */
-function validateInputFilesConsistency(
-  inputFiles: Map<string, Record<string, string>>
-): void {
-  const entries = Array.from(inputFiles.entries());
-  if (entries.length < 2) return;
-
-  const [firstFile, firstVars] = entries[0]!;
-  const firstKeys = new Set(Object.keys(firstVars));
-
-  for (const [file, vars] of entries.slice(1)) {
-    const keys = new Set(Object.keys(vars));
-
-    const missingKeys = [...firstKeys].filter((k) => !keys.has(k));
-    const extraKeys = [...keys].filter((k) => !firstKeys.has(k));
-
-    if (missingKeys.length > 0 || extraKeys.length > 0) {
-      console.log(`Input file inconsistency detected:`);
-      console.log(`  Comparing ${file} to ${firstFile}`);
-      if (missingKeys.length > 0) {
-        console.log(`  Missing keys: ${missingKeys.join(", ")}`);
-      }
-      if (extraKeys.length > 0) {
-        console.log(`  Extra keys: ${extraKeys.join(", ")}`);
-      }
-      throw new Error("Input files have inconsistent keys");
-    }
-  }
-}
-
-/**
- * Validates that template and input variables don't share any keys.
+ * Validates that template keys don't have literal values that conflict with input keys.
+ * A conflict occurs when the template has a key that also exists in input,
+ * but the template value doesn't reference that input variable via ${KEY}.
  * Throws an error if any conflicts are found.
  */
 function validateNoConflicts(
   templateVars: Record<string, string>,
   inputVars: Record<string, string>,
-  inputFile: string
+  inputFile: string,
+  templateContent: string
 ): void {
-  const templateKeys = new Set(Object.keys(templateVars));
   const inputKeys = Object.keys(inputVars);
 
-  const conflicts = inputKeys.filter((k) => templateKeys.has(k));
+  const conflicts = inputKeys.filter((key) => {
+    if (!(key in templateVars)) return false;
+    // Check if the template references this key via ${KEY}
+    const refPattern = new RegExp(`\\$\\{${key}\\}`);
+    return !refPattern.test(templateContent);
+  });
+
   if (conflicts.length > 0) {
     throw new Error(
-      `Template and input file "${inputFile}" have conflicting keys: ${conflicts.join(
+      `Template has literal values for keys also in input file "${inputFile}": ${conflicts.join(
         ", "
-      )}`
+      )}. Use \${${conflicts[0]}} to reference the input value.`
     );
   }
 }
 
 /**
  * Validates all input files and template variables.
- * Ensures input files have consistent keys and don't conflict with template.
+ * Ensures template doesn't have literal values for keys that exist in input.
  */
 export function validateEnvInputs(
   templateVars: Record<string, string>,
-  inputFiles: Map<string, Record<string, string>>
+  inputFiles: Map<string, Record<string, string>>,
+  templateContent: string
 ): void {
-  validateInputFilesConsistency(inputFiles);
-
   for (const [sourceFile, vars] of inputFiles) {
-    validateNoConflicts(templateVars, vars, sourceFile);
+    validateNoConflicts(templateVars, vars, sourceFile, templateContent);
   }
 }

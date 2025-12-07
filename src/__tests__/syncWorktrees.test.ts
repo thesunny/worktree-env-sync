@@ -41,6 +41,8 @@ describe("syncWorktrees", () => {
       join(TEST_DIR, ".env.template"),
       `APP_NAME=myapp
 APP_URL=http://localhost:3000
+DATABASE_URL=\${DATABASE_URL}
+API_KEY=\${API_KEY}
 DATABASE_CONNECTION=\${DATABASE_URL}?pool=5`
     );
 
@@ -72,22 +74,16 @@ API_KEY=key2`
     expect(existsSync(envFile2)).toBe(true);
 
     // Check env file contents
-    expect(readFileSync(envFile1, "utf-8")).toBe(`# Input variables
+    expect(readFileSync(envFile1, "utf-8")).toBe(`APP_NAME="myapp"
+APP_URL="http://localhost:3000"
 DATABASE_URL="postgres://localhost/worktree1"
 API_KEY="key1"
-
-# Template variables
-APP_NAME="myapp"
-APP_URL="http://localhost:3000"
 DATABASE_CONNECTION="postgres://localhost/worktree1?pool=5"`);
 
-    expect(readFileSync(envFile2, "utf-8")).toBe(`# Input variables
+    expect(readFileSync(envFile2, "utf-8")).toBe(`APP_NAME="myapp"
+APP_URL="http://localhost:3000"
 DATABASE_URL="postgres://localhost/worktree2"
 API_KEY="key2"
-
-# Template variables
-APP_NAME="myapp"
-APP_URL="http://localhost:3000"
 DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`);
 
     // Check symlinks for worktree1
