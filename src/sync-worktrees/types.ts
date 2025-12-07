@@ -13,3 +13,9 @@ export interface GeneratedFile {
   path: string;
   content: string;
 }
+
+export interface Context {
+  base: string;
+  config: Config;
+  fileMap: Map<string, string>;
+}

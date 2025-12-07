@@ -1,9 +1,14 @@
 import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import dotenvx from "@dotenvx/dotenvx";
-import { type Config, configSchema, type GeneratedFile } from "./types.js";
+import {
+  type Config,
+  configSchema,
+  type Context,
+  type GeneratedFile,
+} from "./types.js";
 
-export type { Config, GeneratedFile } from "./types.js";
+export type { Config, Context, GeneratedFile } from "./types.js";
 
 /**
  * Reads and validates a sync-env config file.
@@ -20,6 +25,27 @@ export function readConfig(base: string, configPath: string): Config {
   }
 
   return result.data;
+}
+
+/**
+ * Reads the config file and all supporting files (template and input env files).
+ * Returns a Context object containing the base path, config, and fileMap.
+ */
+export function readContext(base: string, configPath: string): Context {
+  const config = readConfig(base, configPath);
+  const fileMap = new Map<string, string>();
+
+  // Read template file
+  const templatePath = join(base, config.template);
+  fileMap.set(config.template, readFileSync(templatePath, "utf-8"));
+
+  // Read all input files
+  for (const sourceFile of Object.keys(config.targetFolders)) {
+    const sourcePath = join(base, sourceFile);
+    fileMap.set(sourceFile, readFileSync(sourcePath, "utf-8"));
+  }
+
+  return { base, config, fileMap };
 }
 
 /**
@@ -185,22 +211,11 @@ export function generateEnvLinks(config: Config): Map<string, string[]> {
 }
 
 /**
- * Reads files from disk, generates env files, writes them to disk, and creates symlinks.
- * This is the main orchestration function that performs all file I/O operations.
+ * Generates env files, writes them to disk, and creates symlinks using a pre-loaded context.
+ * This is the main orchestration function that performs all write operations.
  */
-export function syncEnvFilesFromConfig(base: string, config: Config): void {
-  // Build fileMap by reading files
-  const fileMap = new Map<string, string>();
-
-  // Read template
-  const templatePath = join(base, config.template);
-  fileMap.set(config.template, readFileSync(templatePath, "utf-8"));
-
-  // Read all input files
-  for (const sourceFile of Object.keys(config.targetFolders)) {
-    const sourcePath = join(base, sourceFile);
-    fileMap.set(sourceFile, readFileSync(sourcePath, "utf-8"));
-  }
+export function syncEnvFilesFromContext(context: Context): void {
+  const { base, config, fileMap } = context;
 
   // Generate files
   const generatedFiles = generateEnvFiles(config, fileMap);
@@ -229,6 +244,6 @@ export function syncEnvFilesFromConfig(base: string, config: Config): void {
  * Main entry point. Reads the config file and syncs all env files and symlinks.
  */
 export function syncWorktrees(base: string, configPath: string): void {
-  const config = readConfig(base, configPath);
-  syncEnvFilesFromConfig(base, config);
+  const context = readContext(base, configPath);
+  syncEnvFilesFromContext(context);
 }
