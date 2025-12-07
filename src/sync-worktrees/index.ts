@@ -57,7 +57,7 @@ export function generateEnvFiles(
 
   // Parse all input files
   const inputFiles = new Map<string, Record<string, string>>();
-  for (const sourceFile of Object.keys(config.targetFolders)) {
+  for (const sourceFile of Object.keys(config.inputFilesToFolders)) {
     const content = fileContentsMap.get(sourceFile);
     if (!content) {
       throw new Error(`Input file not found: ${sourceFile}`);
@@ -70,10 +70,10 @@ export function generateEnvFiles(
   // Generate output for each target folder
   const results: GeneratedFile[] = [];
   for (const [sourceFile, targetFolder] of Object.entries(
-    config.targetFolders
+    config.inputFilesToFolders
   )) {
     const inputVars = inputFiles.get(sourceFile)!;
-    const destPath = join(targetFolder, config.outputPath);
+    const destPath = join(targetFolder, config.outputFile);
 
     // Process template with input vars
     const processedTemplate = processTemplate(templateContent, inputVars);
@@ -95,9 +95,9 @@ export function generateEnvFiles(
 export function generateEnvLinks(config: Config): Map<string, string[]> {
   const result = new Map<string, string[]>();
 
-  for (const targetFolder of Object.values(config.targetFolders)) {
-    const envFilePath = join(targetFolder, config.outputPath);
-    const linkPaths = config.symlinks.map((symlink) =>
+  for (const targetFolder of Object.values(config.inputFilesToFolders)) {
+    const envFilePath = join(targetFolder, config.outputFile);
+    const linkPaths = config.symlinksToOuputFile.map((symlink) =>
       join(targetFolder, symlink)
     );
     result.set(envFilePath, linkPaths);

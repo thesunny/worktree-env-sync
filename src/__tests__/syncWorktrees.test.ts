@@ -23,12 +23,12 @@ describe("syncWorktrees", () => {
       join(TEST_DIR, "sync-env.json"),
       JSON.stringify({
         template: ".env.template",
-        outputPath: ".env.local",
-        targetFolders: {
+        inputFilesToFolders: {
           ".env.worktree1": "worktrees/wt1",
           ".env.worktree2": "worktrees/wt2",
         },
-        symlinks: [
+        outputFile: ".env.local",
+        symlinksToOuputFile: [
           "apps/web/.env.local",
           "apps/docs/.env.local",
           "packages/db/.env.local",

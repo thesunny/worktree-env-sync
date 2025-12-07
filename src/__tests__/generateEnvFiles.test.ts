@@ -7,12 +7,12 @@ import {
 describe("generateEnvFiles", () => {
   const config: Config = {
     template: ".env.template",
-    outputPath: "env.local",
-    targetFolders: {
+    inputFilesToFolders: {
       ".env.worktree1": "temp/worktree1",
       ".env.worktree2": "temp/worktree2",
     },
-    symlinks: [],
+    outputFile: "env.local",
+    symlinksToOuputFile: [],
   };
 
   it("should generate output with processed template only", () => {
@@ -72,7 +72,7 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
   it("should throw error when template has literal value for key also in input", () => {
     const singleConfig: Config = {
       ...config,
-      targetFolders: { ".env.worktree1": "temp/worktree1" },
+      inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
     };
     const fileMap = new Map([
       [".env.template", "APP=test"],
@@ -87,7 +87,7 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
   it("should allow template key matching input when template references input variable", () => {
     const singleConfig: Config = {
       ...config,
-      targetFolders: { ".env.worktree1": "temp/worktree1" },
+      inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
     };
     const fileMap = new Map([
       [".env.template", "PORT=${PORT}"],
@@ -101,7 +101,7 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
   it("should throw error when input variable is not used in template", () => {
     const singleConfig: Config = {
       ...config,
-      targetFolders: { ".env.worktree1": "temp/worktree1" },
+      inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
     };
     const fileMap = new Map([
       [".env.template", "APP=test"],
@@ -116,7 +116,7 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
   it("should throw error when template references missing variable", () => {
     const singleConfig: Config = {
       ...config,
-      targetFolders: { ".env.worktree1": "temp/worktree1" },
+      inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
     };
     const fileMap = new Map([
       [".env.template", "APP=${MISSING_VAR}\nFOO=${FOO}"],
@@ -131,7 +131,7 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
   it("should not expand system environment variables in input files", () => {
     const singleConfig: Config = {
       ...config,
-      targetFolders: { ".env.worktree1": "temp/worktree1" },
+      inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
     };
     const fileMap = new Map([
       [".env.template", `PATH=\${PATH}
@@ -153,7 +153,7 @@ HOME=/custom/home`],
   it("should escape quotes and backslashes in values", () => {
     const singleConfig: Config = {
       ...config,
-      targetFolders: { ".env.worktree1": "temp/worktree1" },
+      inputFilesToFolders: { ".env.worktree1": "temp/worktree1" },
     };
     const fileMap = new Map([
       [".env.template", `MESSAGE=\${MESSAGE}

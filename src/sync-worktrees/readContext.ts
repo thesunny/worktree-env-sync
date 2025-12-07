@@ -32,7 +32,7 @@ export function readContext(base: string, configPath: string): Context {
   fileContentsMap.set(config.template, readFileSync(templatePath, "utf-8"));
 
   // Read all input files
-  for (const sourceFile of Object.keys(config.targetFolders)) {
+  for (const sourceFile of Object.keys(config.inputFilesToFolders)) {
     const sourcePath = join(base, sourceFile);
     fileContentsMap.set(sourceFile, readFileSync(sourcePath, "utf-8"));
   }

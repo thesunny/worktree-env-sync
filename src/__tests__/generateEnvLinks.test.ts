@@ -5,12 +5,12 @@ describe("generateEnvLinks", () => {
   it("should generate symlink paths for each target folder", () => {
     const config: Config = {
       template: ".env.template",
-      outputPath: ".env.local",
-      targetFolders: {
+      inputFilesToFolders: {
         ".env.worktree1": "temp/worktree1",
         ".env.worktree2": "temp/worktree2",
       },
-      symlinks: [
+      outputFile: ".env.local",
+      symlinksToOuputFile: [
         "apps/web/.env.local",
         "apps/docs/.env.local",
         "packages/db/.env.local",
@@ -35,11 +35,11 @@ describe("generateEnvLinks", () => {
   it("should return empty arrays when no symlinks configured", () => {
     const config: Config = {
       template: ".env.template",
-      outputPath: ".env.local",
-      targetFolders: {
+      inputFilesToFolders: {
         ".env.worktree1": "temp/worktree1",
       },
-      symlinks: [],
+      outputFile: ".env.local",
+      symlinksToOuputFile: [],
     };
 
     const result = generateEnvLinks(config);
