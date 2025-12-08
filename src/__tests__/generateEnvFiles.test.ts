@@ -42,19 +42,19 @@ API_KEY=key2`,
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       path: "temp/worktree1/env.local",
-      content: `APP_NAME="myapp"
+      content: `API_KEY="key1"
+APP_NAME="myapp"
 APP_URL="http://localhost:3000"
-DATABASE_URL="postgres://localhost/worktree1"
-API_KEY="key1"
-DATABASE_CONNECTION="postgres://localhost/worktree1?pool=5"`,
+DATABASE_CONNECTION="postgres://localhost/worktree1?pool=5"
+DATABASE_URL="postgres://localhost/worktree1"`,
     });
     expect(result[1]).toEqual({
       path: "temp/worktree2/env.local",
-      content: `APP_NAME="myapp"
+      content: `API_KEY="key2"
+APP_NAME="myapp"
 APP_URL="http://localhost:3000"
-DATABASE_URL="postgres://localhost/worktree2"
-API_KEY="key2"
-DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`,
+DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"
+DATABASE_URL="postgres://localhost/worktree2"`,
     });
   });
 

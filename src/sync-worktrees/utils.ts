@@ -4,6 +4,7 @@
  */
 export function serializeEnv(env: Record<string, string>): string {
   return Object.entries(env)
+    .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => {
       const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
       return `${key}="${escaped}"`;

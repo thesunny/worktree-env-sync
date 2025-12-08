@@ -77,18 +77,18 @@ API_KEY=key2`
     expect(existsSync(envFile1)).toBe(true);
     expect(existsSync(envFile2)).toBe(true);
 
-    // Check env file contents
-    expect(readFileSync(envFile1, "utf-8")).toBe(`APP_NAME="myapp"
+    // Check env file contents (alphabetically sorted)
+    expect(readFileSync(envFile1, "utf-8")).toBe(`API_KEY="key1"
+APP_NAME="myapp"
 APP_URL="http://localhost:3000"
-DATABASE_URL="postgres://localhost/worktree1"
-API_KEY="key1"
-DATABASE_CONNECTION="postgres://localhost/worktree1?pool=5"`);
+DATABASE_CONNECTION="postgres://localhost/worktree1?pool=5"
+DATABASE_URL="postgres://localhost/worktree1"`);
 
-    expect(readFileSync(envFile2, "utf-8")).toBe(`APP_NAME="myapp"
+    expect(readFileSync(envFile2, "utf-8")).toBe(`API_KEY="key2"
+APP_NAME="myapp"
 APP_URL="http://localhost:3000"
-DATABASE_URL="postgres://localhost/worktree2"
-API_KEY="key2"
-DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`);
+DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"
+DATABASE_URL="postgres://localhost/worktree2"`);
 
     // Check symlinks for worktree1
     const wt1Links = [
