@@ -1,7 +1,7 @@
 {
   "name": "worktree-env-sync",
   "type": "module",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "",
   "bin": {
     "worktree-env-sync": "./dist/cli.js"
@@ -18,6 +18,8 @@
     "build:watch": "tsup --watch",
     "-- lint": "# lint",
     "lint:tsc": "tsc --noEmit",
+    "-- release": "# release",
+    "release": "pnpm build && pnpm publish",
     "-- test": "# test",
     "test": "vitest",
     "test:watch": "vitest ",

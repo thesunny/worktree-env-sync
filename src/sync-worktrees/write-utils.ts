@@ -1,4 +1,4 @@
-import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { type GeneratedFile } from "./types.js";
 
@@ -14,7 +14,7 @@ export function writeEnvFiles(base: string, envFiles: GeneratedFile[]): void {
 }
 
 /**
- * Creates symlinks for env files.
+ * Creates symlinks for env files. Overwrites existing symlinks if they exist.
  */
 export function writeSymlinks(base: string, envLinks: Map<string, string[]>): void {
   for (const [envFilePath, linkPaths] of envLinks) {
@@ -22,6 +22,9 @@ export function writeSymlinks(base: string, envLinks: Map<string, string[]>): vo
     for (const linkPath of linkPaths) {
       const fullLinkPath = join(base, linkPath);
       mkdirSync(dirname(fullLinkPath), { recursive: true });
+      if (existsSync(fullLinkPath)) {
+        unlinkSync(fullLinkPath);
+      }
       const relativePath = relative(dirname(fullLinkPath), fullEnvPath);
       symlinkSync(relativePath, fullLinkPath);
     }
