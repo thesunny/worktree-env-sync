@@ -26,13 +26,14 @@ The config file is a JSON file with the following structure:
 {
   "template": ".env.template",
   "inputFilesToFolders": {
-    ".env.worktree1": "worktrees/feature-a",
-    ".env.worktree2": "worktrees/feature-b"
+    ".env.worktree1": "../worktree1",
+    ".env.worktree2": "../worktree2",
+    ".env.worktree3": "../worktree3"
   },
   "outputFile": ".env.local",
   "symlinksToOuputFile": [
     "apps/web/.env.local",
-    "apps/api/.env.local",
+    "apps/docs/.env.local",
     "packages/db/.env.local"
   ]
 }
@@ -53,13 +54,13 @@ Create an input env file for each worktree containing worktree-specific variable
 
 ```bash
 # .env.worktree1
-DATABASE_URL=postgres://localhost/feature_a_db
+DATABASE_URL=postgres://localhost/worktree1_db
 API_KEY=dev-key-123
 ```
 
 ```bash
 # .env.worktree2
-DATABASE_URL=postgres://localhost/feature_b_db
+DATABASE_URL=postgres://localhost/worktree2_db
 API_KEY=dev-key-456
 ```
 
@@ -82,11 +83,11 @@ API_KEY=${API_KEY}
 Running `worktree-env-sync` generates an env file in each target folder with interpolated values:
 
 ```bash
-# worktrees/feature-a/.env.local
+# ../worktree1/.env.local
 API_KEY="dev-key-123"
 APP_NAME="myapp"
 APP_URL="http://localhost:3000"
-DATABASE_CONNECTION="postgres://localhost/feature_a_db?pool=5"
+DATABASE_CONNECTION="postgres://localhost/worktree1_db?pool=5"
 ```
 
 **Note:** Output values are quoted and variables are sorted alphabetically.
@@ -96,11 +97,11 @@ DATABASE_CONNECTION="postgres://localhost/feature_a_db?pool=5"
 Symlinks are created at each path specified in `symlinks`, pointing to the generated env file. This allows monorepo packages to share the same env file:
 
 ```
-worktrees/feature-a/
+worktree1/
 ├── .env.local                      # Generated env file
 ├── apps/
 │   ├── web/.env.local              # Symlink → ../../.env.local
-│   └── api/.env.local              # Symlink → ../../.env.local
+│   └── docs/.env.local             # Symlink → ../../.env.local
 └── packages/
     └── db/.env.local               # Symlink → ../../.env.local
 ```
