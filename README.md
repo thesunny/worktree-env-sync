@@ -83,11 +83,13 @@ Running `worktree-env-sync` generates an env file in each target folder with int
 
 ```bash
 # worktrees/feature-a/.env.local
+API_KEY="dev-key-123"
 APP_NAME="myapp"
 APP_URL="http://localhost:3000"
 DATABASE_CONNECTION="postgres://localhost/feature_a_db?pool=5"
-API_KEY="dev-key-123"
 ```
+
+**Note:** Output values are quoted and variables are sorted alphabetically.
 
 ### 4. Symlinks
 
