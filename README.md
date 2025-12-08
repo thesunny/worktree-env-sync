@@ -1,4 +1,4 @@
-# worktree-cli
+# worktree-env-sync
 
 A CLI tool for syncing environment files across git worktrees. It generates `.env` files by combining a shared template with worktree-specific input variables, and creates symlinks to distribute the env file to multiple locations within each worktree.
 
