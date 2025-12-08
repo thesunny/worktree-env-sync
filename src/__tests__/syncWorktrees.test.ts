@@ -8,13 +8,16 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { syncWorktrees } from "../sync-worktrees/index.js";
 
 const TEST_DIR = join(__dirname, "temp/syncWorktrees-test");
 
 describe("syncWorktrees", () => {
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
+    consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     rmSync(TEST_DIR, { recursive: true, force: true });
     mkdirSync(TEST_DIR, { recursive: true });
 
@@ -60,6 +63,7 @@ API_KEY=key2`
   });
 
   afterEach(() => {
+    consoleLogSpy.mockRestore();
     rmSync(TEST_DIR, { recursive: true, force: true });
   });
 
@@ -118,5 +122,36 @@ DATABASE_CONNECTION="postgres://localhost/worktree2?pool=5"`);
     const sampleLink = join(TEST_DIR, "worktrees/wt1/apps/web/.env.local");
     const linkTarget = readlinkSync(sampleLink);
     expect(linkTarget).toBe("../../.env.local");
+  });
+
+  describe("success message", () => {
+    it("should output success message with template, generated files, and symlinks", () => {
+      syncWorktrees(TEST_DIR, "worktree-env-sync.json");
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Sync completed successfully!")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Template: .env.template")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Generated env files:")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(".env.worktree1 -> worktrees/wt1/.env.local")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(".env.worktree2 -> worktrees/wt2/.env.local")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Created symlinks:")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("worktrees/wt1/apps/web/.env.local")
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("worktrees/wt2/packages/db/.env.local")
+      );
+    });
   });
 });

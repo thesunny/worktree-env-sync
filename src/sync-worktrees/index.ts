@@ -123,9 +123,38 @@ export function syncEnvFilesFromContext(context: Context): void {
 }
 
 /**
+ * Prints a success message summarizing what was synced.
+ */
+function printSuccessMessage(config: Config): void {
+  const targetFolders = Object.values(config.inputFilesToFolders);
+
+  console.log("\nSync completed successfully!\n");
+
+  console.log(`Template: ${config.template}\n`);
+
+  console.log("Generated env files:");
+  for (const [inputFile, folder] of Object.entries(config.inputFilesToFolders)) {
+    console.log(`  ${inputFile} -> ${join(folder, config.outputFile)}`);
+  }
+
+  if (config.symlinksToOuputFile.length > 0) {
+    console.log("\nCreated symlinks:");
+    for (const folder of targetFolders) {
+      const envFile = join(folder, config.outputFile);
+      for (const symlinkPath of config.symlinksToOuputFile) {
+        console.log(`  ${join(folder, symlinkPath)} -> ${envFile}`);
+      }
+    }
+  }
+
+  console.log("");
+}
+
+/**
  * Main entry point. Reads the config file and syncs all env files and symlinks.
  */
 export function syncWorktrees(base: string, configPath: string): void {
   const context = readContext(base, configPath);
   syncEnvFilesFromContext(context);
+  printSuccessMessage(context.config);
 }
