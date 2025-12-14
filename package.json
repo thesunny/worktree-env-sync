@@ -2,14 +2,33 @@
   "name": "worktree-env-sync",
   "type": "module",
   "version": "2.0.7",
-  "description": "",
+  "description": "CLI tool for syncing environment files across git worktrees with template interpolation and symlink support for monorepos",
   "bin": {
     "worktree-env-sync": "./dist/cli.js"
   },
   "files": [
     "dist"
   ],
-  "keywords": [],
+  "keywords": [
+    "worktree",
+    "git-worktree",
+    "env",
+    "dotenv",
+    "environment",
+    "sync",
+    "monorepo",
+    "cli",
+    "symlink",
+    "config",
+    "env-sync",
+    "environment-variables",
+    "claude-code",
+    "cursor",
+    "ai-coding",
+    "copilot",
+    "agentic",
+    "parallel-development"
+  ],
   "author": "",
   "license": "MIT",
   "scripts": {
