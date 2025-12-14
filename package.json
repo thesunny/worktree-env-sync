@@ -31,6 +31,14 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thesunny/worktree-env-sync.git"
+  },
+  "homepage": "https://github.com/thesunny/worktree-env-sync",
+  "bugs": {
+    "url": "https://github.com/thesunny/worktree-env-sync/issues"
+  },
   "scripts": {
     "-- build": "# build",
     "build": "tsup",
