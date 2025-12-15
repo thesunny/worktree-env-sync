@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { syncWorktrees } from "../sync-worktrees/index.js";
 
 const TEST_DIR = join(__dirname, "temp/syncWorktrees-test");
+const MAIN_DIR = join(TEST_DIR, "main");
 
 describe("syncWorktrees", () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -19,16 +20,16 @@ describe("syncWorktrees", () => {
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     rmSync(TEST_DIR, { recursive: true, force: true });
-    mkdirSync(TEST_DIR, { recursive: true });
+    mkdirSync(MAIN_DIR, { recursive: true });
 
     // Create config file
     writeFileSync(
-      join(TEST_DIR, "worktree-env-sync.json"),
+      join(MAIN_DIR, "worktree-env-sync.json"),
       JSON.stringify({
         template: ".env.template",
         inputFilesToFolders: {
-          ".env.worktree1": "worktrees/wt1",
-          ".env.worktree2": "worktrees/wt2",
+          ".env.worktree1": "../wt1",
+          ".env.worktree2": "../wt2",
         },
         outputFile: ".env.local",
         symlinksToOuputFile: [
@@ -41,7 +42,7 @@ describe("syncWorktrees", () => {
 
     // Create template file
     writeFileSync(
-      join(TEST_DIR, ".env.template"),
+      join(MAIN_DIR, ".env.template"),
       `APP_NAME=myapp
 APP_URL=http://localhost:3000
 DATABASE_URL=\${DATABASE_URL}
@@ -51,12 +52,12 @@ DATABASE_CONNECTION=\${DATABASE_URL}?pool=5`
 
     // Create input env files
     writeFileSync(
-      join(TEST_DIR, ".env.worktree1"),
+      join(MAIN_DIR, ".env.worktree1"),
       `DATABASE_URL=postgres://localhost/worktree1
 API_KEY=key1`
     );
     writeFileSync(
-      join(TEST_DIR, ".env.worktree2"),
+      join(MAIN_DIR, ".env.worktree2"),
       `DATABASE_URL=postgres://localhost/worktree2
 API_KEY=key2`
     );
@@ -68,11 +69,11 @@ API_KEY=key2`
   });
 
   it("should generate env files and create symlinks for all worktrees", () => {
-    syncWorktrees(TEST_DIR, "worktree-env-sync.json");
+    syncWorktrees(MAIN_DIR, "worktree-env-sync.json");
 
-    // Check env files were created
-    const envFile1 = join(TEST_DIR, "worktrees/wt1/.env.local");
-    const envFile2 = join(TEST_DIR, "worktrees/wt2/.env.local");
+    // Check env files were created (in sibling directories)
+    const envFile1 = join(TEST_DIR, "wt1/.env.local");
+    const envFile2 = join(TEST_DIR, "wt2/.env.local");
 
     expect(existsSync(envFile1)).toBe(true);
     expect(existsSync(envFile2)).toBe(true);
@@ -92,9 +93,9 @@ DATABASE_URL="postgres://localhost/worktree2"`);
 
     // Check symlinks for worktree1
     const wt1Links = [
-      "worktrees/wt1/apps/web/.env.local",
-      "worktrees/wt1/apps/docs/.env.local",
-      "worktrees/wt1/packages/db/.env.local",
+      "wt1/apps/web/.env.local",
+      "wt1/apps/docs/.env.local",
+      "wt1/packages/db/.env.local",
     ];
     for (const link of wt1Links) {
       const fullPath = join(TEST_DIR, link);
@@ -106,9 +107,9 @@ DATABASE_URL="postgres://localhost/worktree2"`);
 
     // Check symlinks for worktree2
     const wt2Links = [
-      "worktrees/wt2/apps/web/.env.local",
-      "worktrees/wt2/apps/docs/.env.local",
-      "worktrees/wt2/packages/db/.env.local",
+      "wt2/apps/web/.env.local",
+      "wt2/apps/docs/.env.local",
+      "wt2/packages/db/.env.local",
     ];
     for (const link of wt2Links) {
       const fullPath = join(TEST_DIR, link);
@@ -119,14 +120,14 @@ DATABASE_URL="postgres://localhost/worktree2"`);
     }
 
     // Verify symlinks point to relative paths
-    const sampleLink = join(TEST_DIR, "worktrees/wt1/apps/web/.env.local");
+    const sampleLink = join(TEST_DIR, "wt1/apps/web/.env.local");
     const linkTarget = readlinkSync(sampleLink);
     expect(linkTarget).toBe("../../.env.local");
   });
 
   describe("success message", () => {
     it("should output success message with template, generated files, and symlinks", () => {
-      syncWorktrees(TEST_DIR, "worktree-env-sync.json");
+      syncWorktrees(MAIN_DIR, "worktree-env-sync.json");
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining("Sync completed successfully!")
@@ -138,19 +139,19 @@ DATABASE_URL="postgres://localhost/worktree2"`);
         expect.stringContaining("Generated env files:")
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining(".env.worktree1 -> worktrees/wt1/.env.local")
+        expect.stringContaining(".env.worktree1 -> ../wt1/.env.local")
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining(".env.worktree2 -> worktrees/wt2/.env.local")
+        expect.stringContaining(".env.worktree2 -> ../wt2/.env.local")
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining("Created symlinks:")
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining("worktrees/wt1/apps/web/.env.local")
+        expect.stringContaining("../wt1/apps/web/.env.local")
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining("worktrees/wt2/packages/db/.env.local")
+        expect.stringContaining("../wt2/packages/db/.env.local")
       );
     });
   });

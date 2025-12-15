@@ -11,8 +11,8 @@ describe("readConfig", () => {
     expect(config).toEqual({
       template: ".env.template",
       inputFilesToFolders: {
-        ".env.worktree1": "temp/worktree1",
-        ".env.worktree2": "temp/worktree2",
+        ".env.worktree1": "../worktree1",
+        ".env.worktree2": "../worktree2",
       },
       outputFile: "env.local",
       symlinksToOuputFile: ["apps/web/.env.local", "apps/docs/.env.local", "packages/db/.env.local"],
@@ -83,6 +83,18 @@ describe("readConfig", () => {
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('"symlinksToOuputFile"')
+      );
+    });
+
+    it("should show validation error for folder paths not starting with '../'", () => {
+      readConfig(BASE_PATH, "invalid-folder-paths.json");
+
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Error: Invalid config file.")
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Folder path must start with "../" to indicate a sibling directory')
       );
     });
   });

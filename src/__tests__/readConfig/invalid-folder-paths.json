@@ -1,8 +1,8 @@
 {
   "template": ".env.template",
   "inputFilesToFolders": {
-    ".env.worktree1": "../worktree1",
-    ".env.worktree2": "../worktree2"
+    ".env.worktree1": "worktrees/wt1",
+    ".env.worktree2": "worktrees/wt2"
   },
   "outputFile": "env.local",
   "symlinksToOuputFile": [
