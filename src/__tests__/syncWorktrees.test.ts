@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { syncWorktrees } from "../sync-worktrees/index.js";
 
 const TEST_DIR = join(__dirname, "temp/syncWorktrees-test");
-const MAIN_DIR = join(TEST_DIR, "main");
+const REPO_ROOT_DIR = join(TEST_DIR, "main");
 
 describe("syncWorktrees", () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -20,11 +20,11 @@ describe("syncWorktrees", () => {
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     rmSync(TEST_DIR, { recursive: true, force: true });
-    mkdirSync(MAIN_DIR, { recursive: true });
+    mkdirSync(REPO_ROOT_DIR, { recursive: true });
 
     // Create config file
     writeFileSync(
-      join(MAIN_DIR, "worktree-env-sync.json"),
+      join(REPO_ROOT_DIR, "worktree-env-sync.json"),
       JSON.stringify({
         template: ".env.template",
         inputFilesToFolders: {
@@ -42,7 +42,7 @@ describe("syncWorktrees", () => {
 
     // Create template file
     writeFileSync(
-      join(MAIN_DIR, ".env.template"),
+      join(REPO_ROOT_DIR, ".env.template"),
       `APP_NAME=myapp
 APP_URL=http://localhost:3000
 DATABASE_URL=\${DATABASE_URL}
@@ -52,12 +52,12 @@ DATABASE_CONNECTION=\${DATABASE_URL}?pool=5`
 
     // Create input env files
     writeFileSync(
-      join(MAIN_DIR, ".env.worktree1"),
+      join(REPO_ROOT_DIR, ".env.worktree1"),
       `DATABASE_URL=postgres://localhost/worktree1
 API_KEY=key1`
     );
     writeFileSync(
-      join(MAIN_DIR, ".env.worktree2"),
+      join(REPO_ROOT_DIR, ".env.worktree2"),
       `DATABASE_URL=postgres://localhost/worktree2
 API_KEY=key2`
     );
@@ -69,7 +69,7 @@ API_KEY=key2`
   });
 
   it("should generate env files and create symlinks for all worktrees", () => {
-    syncWorktrees(MAIN_DIR, "worktree-env-sync.json");
+    syncWorktrees(REPO_ROOT_DIR, "worktree-env-sync.json");
 
     // Check env files were created (in sibling directories)
     const envFile1 = join(TEST_DIR, "wt1/.env.local");
@@ -127,7 +127,7 @@ DATABASE_URL="postgres://localhost/worktree2"`);
 
   describe("success message", () => {
     it("should output success message with template, generated files, and symlinks", () => {
-      syncWorktrees(MAIN_DIR, "worktree-env-sync.json");
+      syncWorktrees(REPO_ROOT_DIR, "worktree-env-sync.json");
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining("Sync completed successfully!")
